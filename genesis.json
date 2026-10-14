@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "name": "GENESIS URL Cleaner",
+  "description": "Remove common tracking parameters from a URL while preserving useful query values and fragments. Lightweight, no dependencies, no external network requests.",
+  "entry": "src/index.js",
+  "input": {
+    "url": {
+      "type": "string",
+      "label": "URL to clean",
+      "max": 4000,
+      "default": "https://example.com/article?utm_source=newsletter&fbclid=abc&page=2#details"
+    }
+  },
+  "network": [],
+  "timeoutMs": 2000,
+  "tests": [
+    {
+      "name": "Removes UTM and click tracking",
+      "input": {
+        "url": "https://example.com/article?utm_source=newsletter&fbclid=abc&page=2#details"
+      },
+      "expect": {
+        "valid": true,
+        "url": "https://example.com/article?page=2#details",
+        "removedCount": 2,
+        "removedParameters": [
+          "utm_source",
+          "fbclid"
+        ],
+        "error": null
+      }
+    },
+    {
+      "name": "Keeps useful parameters and fragment",
+      "input": {
+        "url": "https://example.com/search?q=genesis&page=2#results"
+      },
+      "expect": {
+        "valid": true,
+        "url": "https://example.com/search?q=genesis&page=2#results",
+        "removedCount": 0,
+        "removedParameters": [],
+        "error": null
+      }
+    },
+    {
+      "name": "Counts repeated tracking parameters",
+      "input": {
+        "url": "https://example.com/?utm_source=a&utm_source=b&x=1"
+      },
+      "expect": {
+        "valid": true,
+        "url": "https://example.com/?x=1",
+        "removedCount": 2,
+        "removedParameters": [
+          "utm_source"
+        ],
+        "error": null
+      }
+    },
+    {
+      "name": "Matches tracking names case insensitively",
+      "input": {
+        "url": "https://example.com/?UTM_SOURCE=a&GCLID=b&mode=light"
+      },
+      "expect": {
+        "valid": true,
+        "url": "https://example.com/?mode=light",
+        "removedCount": 2,
+        "removedParameters": [
+          "UTM_SOURCE",
+          "GCLID"
+        ],
+        "error": null
+      }
+    },
+    {
+      "name": "Rejects invalid URLs",
+      "input": {
+        "url": "not a url"
+      },
+      "expect": {
+        "valid": false,
+        "url": "",
+        "removedCount": 0,
+        "removedParameters": [],
+        "error": "Enter a valid HTTP or HTTPS URL without embedded credentials."
+      }
+    },
+    {
+      "name": "Rejects non-HTTP protocols",
+      "input": {
+        "url": "javascript:alert(1)"
+      },
+      "expect": {
+        "valid": false,
+        "url": "",
+        "removedCount": 0,
+        "removedParameters": [],
+        "error": "Enter a valid HTTP or HTTPS URL without embedded credentials."
+      }
+    },
+    {
+      "name": "Rejects embedded credentials",
+      "input": {
+        "url": "https://test-user:test-pass@example.com/"
+      },
+      "expect": {
+        "valid": false,
+        "url": "",
+        "removedCount": 0,
+        "removedParameters": [],
+        "error": "Enter a valid HTTP or HTTPS URL without embedded credentials."
+      }
+    },
+    {
+      "name": "Accepts a plain HTTPS URL",
+      "input": {
+        "url": "  https://example.com  "
+      },
+      "expect": {
+        "valid": true,
+        "url": "https://example.com/",
+        "removedCount": 0,
+        "removedParameters": [],
+        "error": null
+      }
+    }
+  ],
+  "verify": "genesis-verify-ec0bf168cc90c94c167d8e37956e6e72"
+}
